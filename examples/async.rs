@@ -9,6 +9,7 @@ use std::time::Duration;
 struct AsyncDemo {
     user: Signal<Option<String>>,
     loading: Signal<bool>,
+    error: Signal<Option<String>>,
 }
 
 impl AsyncDemo {
@@ -16,6 +17,7 @@ impl AsyncDemo {
         Self {
             user: cx.create_signal(None),
             loading: cx.create_signal(false),
+            error: cx.create_signal(None),
         }
     }
 
@@ -26,6 +28,7 @@ impl AsyncDemo {
 
         self.loading.set(true);
         self.user.set(None);
+        self.error.set(None);
 
         cx.spawn(async move |this: WeakEntity<Self>, cx: &mut AsyncApp| {
             // Simulate network delay
@@ -34,14 +37,20 @@ impl AsyncDemo {
                 .await;
 
             // Simulate random success/failure or different users
-            let user = if rand::random() {
-                "Alice (Admin)".to_string()
-            } else {
-                "Bob (User)".to_string()
-            };
+            let success = rand::random::<bool>();
 
             this.update(cx, |this, _cx| {
-                this.user.set(Some(user));
+                if success {
+                    let user = if rand::random() {
+                        "Alice (Admin)".to_string()
+                    } else {
+                        "Bob (User)".to_string()
+                    };
+                    this.user.set(Some(user));
+                } else {
+                    this.error
+                        .set(Some("Failed to load user. Try again.".to_string()));
+                }
                 this.loading.set(false);
             })
             .ok();
@@ -54,6 +63,7 @@ impl Render for AsyncDemo {
     fn render(&mut self, _window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         let loading = self.loading.get();
         let user = self.user.get();
+        let error = self.error.get();
 
         div()
             .flex()
@@ -83,6 +93,8 @@ impl Render for AsyncDemo {
                     .border_color(rgb(0x444444))
                     .child(if loading {
                         div().child("Loading...")
+                    } else if let Some(message) = error {
+                        div().text_color(rgb(0xff6b6b)).child(message)
                     } else if let Some(name) = user {
                         div().text_lg().child(format!("User: {}", name))
                     } else {

@@ -136,6 +136,11 @@ impl<T: 'static + Clone> Memo<T> {
         self.signal.with(f)
     }
 
+    /// Read the computed value with a closure without tracking.
+    pub fn with_untracked<R>(&self, f: impl FnOnce(&T) -> R) -> R {
+        self.signal.with_untracked(f)
+    }
+
     /// Subscribe to changes in the computed value.
     pub fn subscribe(&self, callback: impl Fn() + 'static) {
         self.signal.subscribe(callback);
@@ -163,6 +168,25 @@ mod tests {
         let doubled = Memo::new(move || count.get() * 2);
 
         assert_eq!(doubled.get(), 10);
+    }
+
+    #[test]
+    fn test_memo_recomputes_on_signal_change() {
+        let count = Signal::new(2);
+        let doubled = Memo::new(move || count.get() * 2);
+
+        assert_eq!(doubled.get(), 4);
+        count.set(7);
+        assert_eq!(doubled.get(), 14);
+    }
+
+    #[test]
+    fn test_memo_with_untracked() {
+        let count = Signal::new(3);
+        let tripled = Memo::new(move || count.get() * 3);
+
+        let value = tripled.with_untracked(|n| *n);
+        assert_eq!(value, 9);
     }
 
     #[test]

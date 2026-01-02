@@ -6,8 +6,9 @@ use crate::{Memo, Signal};
 use futures::channel::mpsc;
 use futures::StreamExt;
 use gpui::{EntityId, Subscription, WeakEntity};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
+use std::rc::Rc;
 
 /// Extension trait for GPUI Context to work with signals.
 ///
@@ -114,9 +115,17 @@ impl<T: 'static> SignalContext for gpui::Context<'_, T> {
     }
 
     fn create_effect(&mut self, effect: impl Fn() + 'static) {
-        // Create a dummy signal to track dependencies
-        let effect_signal = Signal::new(());
-        effect_signal.subscribe(effect);
+        let active = Rc::new(Cell::new(true));
+        let active_flag = active.clone();
+        let _effect = Memo::new(move || {
+            if active_flag.get() {
+                effect();
+            }
+        });
+        let cleanup_sub = self.on_release(move |_, _| {
+            active.set(false);
+        });
+        track_subscription(self, cleanup_sub);
     }
 }
 

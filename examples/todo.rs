@@ -189,7 +189,7 @@ impl Render for TodoList {
                                 MouseButton::Left,
                                 cx.listener(|_this, _, _, _cx| {
                                     // Simple input handling - in a real app you'd use Editor
-                                    // For this example, clicking Add will create todos automatically
+                                    // For this example, clicking Add will yes todos automatically
                                 }),
                             ),
                     )

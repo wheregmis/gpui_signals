@@ -132,6 +132,20 @@ impl<T: 'static> Signal<T> {
         }
     }
 
+    /// Set the signal only if the value has changed.
+    ///
+    /// Returns true if the value was updated.
+    pub fn set_if_changed(&self, value: T) -> bool
+    where
+        T: PartialEq,
+    {
+        let should_update = self.with_untracked(|current| current != &value);
+        if should_update {
+            self.set(value);
+        }
+        should_update
+    }
+
     /// Update the signal's value with a closure.
     ///
     /// This will notify all subscribers of the change.
@@ -145,6 +159,21 @@ impl<T: 'static> Signal<T> {
                 callback();
             }
         }
+    }
+
+    /// Update the signal's value with a closure and return a result.
+    ///
+    /// This will notify all subscribers of the change.
+    pub fn update_with<R>(&self, f: impl FnOnce(&mut T) -> R) -> Option<R> {
+        if let Some((result, callbacks)) =
+            with_signal_storage(|storage| storage.update(self.id, self.generation, f))
+        {
+            for callback in callbacks {
+                callback();
+            }
+            return Some(result);
+        }
+        None
     }
 
     /// Read the signal's value with a closure.
@@ -327,6 +356,17 @@ mod tests {
     }
 
     #[test]
+    fn test_signal_update_with() {
+        let signal = Signal::new(5);
+        let result = signal.update_with(|n| {
+            *n += 2;
+            *n
+        });
+        assert_eq!(result, Some(7));
+        assert_eq!(signal.get(), 7);
+    }
+
+    #[test]
     fn test_signal_with() {
         let signal = Signal::new(String::from("hello"));
         let len = signal.with(|s| s.len());
@@ -374,6 +414,15 @@ mod tests {
         assert!(signal.get());
         signal.toggle();
         assert!(!signal.get());
+    }
+
+    #[test]
+    fn test_signal_set_if_changed() {
+        let signal = Signal::new(5);
+        assert!(!signal.set_if_changed(5));
+        assert_eq!(signal.get(), 5);
+        assert!(signal.set_if_changed(6));
+        assert_eq!(signal.get(), 6);
     }
 
     #[test]

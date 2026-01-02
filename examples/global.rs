@@ -3,7 +3,6 @@
 //! Demonstrates how to use global signals to share state across views.
 
 use gpui::*;
-use gpui::prelude::*;
 use gpui_signals::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

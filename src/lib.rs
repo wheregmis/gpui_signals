@@ -27,6 +27,26 @@
 //!     }
 //! }
 //! ```
+//!
+//! ```rust,no_run
+//! use gpui::*;
+//! use gpui_signals::prelude::*;
+//!
+//! struct Logger {
+//!     count: Signal<i32>,
+//! }
+//!
+//! impl Logger {
+//!     fn new(cx: &mut Context<Self>) -> Self {
+//!         let count = cx.create_signal(0);
+//!         cx.create_effect(move || {
+//!             let value = count.get();
+//!             println!("count is now {}", value);
+//!         });
+//!         Self { count }
+//!     }
+//! }
+//! ```
 
 mod computed;
 mod context;

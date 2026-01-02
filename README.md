@@ -113,6 +113,29 @@ The primary way to use signals in GPUI components.
 
 - `cx.create_signal(initial)`: Creates a signal that auto-notifies the view on change.
 - `cx.create_memo(compute)`: Creates a memo that auto-notifies the view on change.
+- `cx.create_effect(effect)`: Runs `effect` whenever signals it reads change.
+
+Example:
+
+```rust,no_run
+use gpui::*;
+use gpui_signals::prelude::*;
+
+struct Logger {
+    count: Signal<i32>,
+}
+
+impl Logger {
+    fn new(cx: &mut Context<Self>) -> Self {
+        let count = cx.create_signal(0);
+        cx.create_effect(move || {
+            let value = count.get();
+            println!("count is now {}", value);
+        });
+        Self { count }
+    }
+}
+```
 
 ### `Signal<T>`
 
@@ -122,6 +145,8 @@ A reactive signal that holds a value of type `T`.
 - `get()`: Get value (tracks read)
 - `set(val)`: Set value and notify
 - `update(|v| ...)`: Modify value
+- `update_with(|v| ...)`: Modify value and return a result
+- `set_if_changed(val)`: Set only when the value changes
 - `toggle()`: Toggle boolean value
 - `read_only()`: Get read-only view
 
