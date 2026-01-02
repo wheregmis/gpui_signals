@@ -1,0 +1,19 @@
+[package]
+name = "gpui_signals"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR GPL-3.0-or-later"
+publish = false
+
+[dependencies]
+gpui = { git = "https://github.com/zed-industries/zed" }
+slotmap = "1.0"
+parking_lot = "0.12"
+futures = { version = "*" }
+
+[dev-dependencies]
+gpui = { git = "https://github.com/zed-industries/zed" }
+rand = "0.8"
+
+[lib]
+doctest = false
