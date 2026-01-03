@@ -2,6 +2,7 @@
 //!
 //! This module provides extension methods for GPUI's Context to work with signals.
 
+use crate::storage::SignalId;
 use crate::{Memo, Signal};
 use futures::channel::mpsc;
 use futures::StreamExt;
@@ -65,6 +66,7 @@ pub trait SignalContext {
 thread_local! {
     static ENTITY_SUBSCRIPTIONS: RefCell<HashMap<EntityId, Vec<Subscription>>> = RefCell::new(HashMap::new());
     static ENTITY_CLEANUP_REGISTERED: RefCell<HashSet<EntityId>> = RefCell::new(HashSet::new());
+    static ENTITY_SIGNAL_SUBSCRIPTIONS: RefCell<HashMap<EntityId, HashSet<SignalId>>> = RefCell::new(HashMap::new());
 }
 
 impl<T: 'static> SignalContext for gpui::Context<'_, T> {
@@ -184,6 +186,9 @@ pub(crate) fn track_subscription<V: 'static>(cx: &mut gpui::Context<V>, subscrip
             ENTITY_CLEANUP_REGISTERED.with(|registered| {
                 registered.borrow_mut().remove(&entity_id);
             });
+            ENTITY_SIGNAL_SUBSCRIPTIONS.with(|subs| {
+                subs.borrow_mut().remove(&entity_id);
+            });
         });
         ENTITY_SUBSCRIPTIONS.with(|subs| {
             subs.borrow_mut()
@@ -192,6 +197,18 @@ pub(crate) fn track_subscription<V: 'static>(cx: &mut gpui::Context<V>, subscrip
                 .push(cleanup_sub);
         });
     }
+}
+
+pub(crate) fn subscribe_once<V: 'static, T: 'static>(
+    cx: &mut gpui::Context<V>,
+    signal: &Signal<T>,
+) -> bool {
+    let entity_id = cx.entity_id();
+    ENTITY_SIGNAL_SUBSCRIPTIONS.with(|subs| {
+        let mut subs = subs.borrow_mut();
+        let entry = subs.entry(entity_id).or_insert_with(HashSet::new);
+        entry.insert(signal.id())
+    })
 }
 
 #[cfg(test)]
@@ -281,6 +298,43 @@ mod tests {
         cx.update(|_| {});
 
         let has_entry = ENTITY_SUBSCRIPTIONS.with(|subs| subs.borrow().contains_key(&entity_id));
+        assert!(!has_entry);
+    }
+
+    #[gpui::test]
+    async fn test_subscribe_once_per_entity(cx: &TestAppContext) {
+        struct SubOnceEntity {
+            signal: Signal<i32>,
+        }
+
+        let results: Rc<RefCell<Vec<bool>>> = Rc::new(RefCell::new(Vec::new()));
+        let results_clone = results.clone();
+
+        let entity = cx.update(|cx| {
+            cx.new(|cx| {
+                let signal = cx.create_signal(0);
+                results_clone
+                    .borrow_mut()
+                    .push(subscribe_once(cx, &signal));
+                SubOnceEntity { signal }
+            })
+        });
+
+        cx.update(|cx| {
+            let results = results.clone();
+            cx.update_entity(&entity, |this, cx| {
+                results.borrow_mut().push(subscribe_once(cx, &this.signal));
+            })
+        });
+
+        assert_eq!(&*results.borrow(), &[true, false]);
+
+        let entity_id = entity.entity_id();
+        drop(entity);
+        cx.update(|_| {});
+
+        let has_entry =
+            ENTITY_SIGNAL_SUBSCRIPTIONS.with(|subs| subs.borrow().contains_key(&entity_id));
         assert!(!has_entry);
     }
 }

@@ -53,8 +53,10 @@ impl<V: 'static> GlobalSignalContext for Context<'_, V> {
 
     fn use_global<T: 'static>(&mut self) -> Signal<T> {
         let signal = self.global_signal::<T>();
-        let sub = auto_notify(&signal, self);
-        crate::context::track_subscription(self, sub);
+        if crate::context::subscribe_once(self, &signal) {
+            let sub = auto_notify(&signal, self);
+            crate::context::track_subscription(self, sub);
+        }
         signal
     }
 }
