@@ -32,9 +32,7 @@ impl AsyncDemo {
 
         cx.spawn(async move |this: WeakEntity<Self>, cx: &mut AsyncApp| {
             // Simulate network delay
-            cx.background_executor()
-                .timer(Duration::from_secs(1))
-                .await;
+            cx.background_executor().timer(Duration::from_secs(1)).await;
 
             // Simulate random success/failure or different users
             let success = rand::random::<bool>();
@@ -117,9 +115,12 @@ impl Render for AsyncDemo {
                         CursorStyle::PointingHand
                     })
                     .child(if loading { "Fetching..." } else { "Fetch User" })
-                    .on_mouse_down(MouseButton::Left, cx.listener(|this, _, _, cx| {
-                        this.fetch_user(cx);
-                    })),
+                    .on_mouse_down(
+                        MouseButton::Left,
+                        cx.listener(|this, _, _, cx| {
+                            this.fetch_user(cx);
+                        }),
+                    ),
             )
     }
 }
