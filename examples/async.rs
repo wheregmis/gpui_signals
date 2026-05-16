@@ -3,6 +3,7 @@
 //! Demonstrates how to update signals from async tasks.
 
 use gpui::*;
+use gpui_platform::application;
 use gpui_signals::prelude::*;
 use std::time::Duration;
 
@@ -126,7 +127,7 @@ impl Render for AsyncDemo {
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    application().run(|cx: &mut App| {
         let bounds = Bounds::centered(None, Size::new(px(400.0), px(300.0)), cx);
         cx.open_window(
             WindowOptions {

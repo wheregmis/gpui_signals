@@ -3,6 +3,7 @@
 //! Demonstrates how to use global signals to share state across views.
 
 use gpui::*;
+use gpui_platform::application;
 use gpui_signals::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -55,7 +56,7 @@ impl Render for ThemeToggle {
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    application().run(|cx: &mut App| {
         // Initialize global signal
         cx.init_global(Theme::Light);
 

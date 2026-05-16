@@ -7,6 +7,7 @@
 //! - Integrating with GPUI
 
 use gpui::*;
+use gpui_platform::application;
 use gpui_signals::prelude::*;
 
 struct Counter {
@@ -158,7 +159,7 @@ impl Render for Counter {
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    application().run(|cx: &mut App| {
         let bounds = Bounds::centered(None, Size::new(px(600.0), px(400.0)), cx);
         cx.open_window(
             WindowOptions {

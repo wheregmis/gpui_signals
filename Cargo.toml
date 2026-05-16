@@ -13,6 +13,7 @@ futures = { version = "*" }
 
 [dev-dependencies]
 gpui = { git = "https://github.com/zed-industries/zed", rev = "3bd9d13b63fc5a5ffa39326597bc4fd91adc82d1", features = ["test-support"] }
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "3bd9d13b63fc5a5ffa39326597bc4fd91adc82d1" }
 rand = "0.8"
 
 [lib]
