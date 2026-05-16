@@ -7,6 +7,7 @@
 
 use gpui::prelude::*;
 use gpui::*;
+use gpui_platform::application;
 use gpui_signals::prelude::*;
 
 #[derive(Clone, Debug)]
@@ -378,7 +379,7 @@ impl Render for TodoList {
 }
 
 fn main() {
-    Application::new().run(|cx: &mut App| {
+    application().run(|cx: &mut App| {
         let bounds = Bounds::centered(None, Size::new(px(600.0), px(500.0)), cx);
         cx.open_window(
             WindowOptions {

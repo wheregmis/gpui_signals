@@ -6,13 +6,14 @@ license = "Apache-2.0 OR GPL-3.0-or-later"
 publish = false
 
 [dependencies]
-gpui = { git = "https://github.com/zed-industries/zed" }
+gpui = { git = "https://github.com/zed-industries/zed", rev = "3bd9d13b63fc5a5ffa39326597bc4fd91adc82d1" }
 slotmap = "1.0"
 parking_lot = "0.12"
 futures = { version = "*" }
 
 [dev-dependencies]
-gpui = { git = "https://github.com/zed-industries/zed", features = ["test-support"] }
+gpui = { git = "https://github.com/zed-industries/zed", rev = "3bd9d13b63fc5a5ffa39326597bc4fd91adc82d1", features = ["test-support"] }
+gpui_platform = { git = "https://github.com/zed-industries/zed", rev = "3bd9d13b63fc5a5ffa39326597bc4fd91adc82d1" }
 rand = "0.8"
 
 [lib]

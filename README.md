@@ -74,6 +74,34 @@ cargo run --example todo
 cargo run --example global
 ```
 
+## Validation
+
+Use these commands to verify compile health locally:
+
+```bash
+cargo check --locked --all-targets
+cargo check --locked --examples
+```
+
+`cargo test --lib` is additionally run in CI on macOS only, because GPUI runtime tests depend on platform windowing/system libraries.
+
+## Platform compatibility
+
+- CI validates compile compatibility on Linux, macOS, and Windows.
+- CI treats examples as compile-only checks across all platforms.
+- Runtime UI tests are currently scoped to macOS in CI.
+
+## GPUI upgrade policy
+
+`gpui` is sourced from the zed git repository and pinned to an explicit `rev` in `Cargo.toml` for reproducible builds.
+
+Upgrade workflow:
+
+1. Determine latest zed commit: `git ls-remote https://github.com/zed-industries/zed HEAD`
+2. Update pinned `rev` for `gpui` (and `gpui_platform`) in `Cargo.toml`
+3. Regenerate lockfile: `cargo update -p gpui -p gpui_platform`
+4. Re-run validation commands above
+
 ## Minimal patterns
 
 ### Async update (loading + error)
@@ -105,8 +133,7 @@ impl AsyncDemo {
                 .await;
             this.update(cx, |this, _cx| {
                 this.loading.set(false);
-            })
-            .ok();
+            });
         })
         .detach();
     }
