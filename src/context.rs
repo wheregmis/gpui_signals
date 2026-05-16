@@ -139,11 +139,9 @@ where
             while let Some(()) = rx.next().await {
                 // Use entity.update to call notify on the foreground thread
                 if let Some(entity) = entity.upgrade() {
-                    entity
-                        .update(cx, |_, cx| {
-                            cx.notify();
-                        })
-                        .ok();
+                    entity.update(cx, |_, cx| {
+                        cx.notify();
+                    });
                 } else {
                     // Entity is gone, stop listening
                     break;
